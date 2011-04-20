@@ -17,7 +17,6 @@
 #include <string>
 #include <atomic>
 #include <cstring>
-#include "port/sha1_portable.h"
 
 namespace leveldb {
 namespace port {
@@ -80,10 +79,6 @@ class AtomicPointer {
     rep_.store(v, std::memory_order_relaxed);
   }
 };
-
-inline void SHA1_Hash(const char* data, size_t len, char* hash_array) {
-  SHA1_Hash_Portable(data, len, hash_array);
-}
 
 // TODO(gabor): Implement actual compress
 inline bool Snappy_Compress(const char* input, size_t input_length,
