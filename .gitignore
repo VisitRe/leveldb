@@ -1,13 +1,10 @@
-build_config.mk
-*.a
-*.o
-*.dylib*
-*.so
-*.so.*
-*_test
-db_bench
-leveldbutil
+# Editors.
+*.sw*
+.vscode
 .DS_Store
 cmake-build-debug/
 .idea/
+
+# Build directory.
 build/
+out/
