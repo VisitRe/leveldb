@@ -51,7 +51,7 @@ int g_open_read_only_file_limit = -1;
 // Up to 1000 mmap regions for 64-bit binaries; none for 32-bit.
 constexpr const int kDefaultMmapLimit = (sizeof(void*) >= 8) ? 1000 : 0;
 
-// Can be set using EnvPosixTestHelper::SetReadOnlyMMapLimit.
+// Can be set using EnvPosixTestHelper::SetReadOnlyMMapLimit().
 int g_mmap_limit = kDefaultMmapLimit;
 
 // Common flags defined for all posix open operations
@@ -469,7 +469,8 @@ class PosixEnv : public Env {
  public:
   PosixEnv();
   ~PosixEnv() override {
-    static char msg[] = "PosixEnv singleton destroyed. Unsupported behavior!\n";
+    static const char msg[] =
+        "PosixEnv singleton destroyed. Unsupported behavior!\n";
     std::fwrite(msg, 1, sizeof(msg), stderr);
     std::abort();
   }
@@ -641,7 +642,10 @@ class PosixEnv : public Env {
                 void* background_work_arg) override;
 
   void StartThread(void (*thread_main)(void* thread_main_arg),
-                   void* thread_main_arg) override;
+                   void* thread_main_arg) override {
+    std::thread new_thread(thread_main, thread_main_arg);
+    new_thread.detach();
+  }
 
   Status GetTestDirectory(std::string* result) override {
     const char* env = std::getenv("TEST_TMPDIR");
@@ -686,7 +690,9 @@ class PosixEnv : public Env {
     return static_cast<uint64_t>(tv.tv_sec) * kUsecondsPerSecond + tv.tv_usec;
   }
 
-  void SleepForMicroseconds(int micros) override { ::usleep(micros); }
+  void SleepForMicroseconds(int micros) override {
+    std::this_thread::sleep_for(std::chrono::microseconds(micros));
+  }
 
  private:
   void BackgroundThreadMain();
@@ -846,12 +852,6 @@ std::atomic<bool> SingletonEnv<EnvType>::env_initialized_;
 using PosixDefaultEnv = SingletonEnv<PosixEnv>;
 
 }  // namespace
-
-void PosixEnv::StartThread(void (*thread_main)(void* thread_main_arg),
-                           void* thread_main_arg) {
-  std::thread new_thread(thread_main, thread_main_arg);
-  new_thread.detach();
-}
 
 void EnvPosixTestHelper::SetReadOnlyFDLimit(int limit) {
   PosixDefaultEnv::AssertEnvNotInitialized();
