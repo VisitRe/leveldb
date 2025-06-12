@@ -40,7 +40,7 @@ class PosixSequentialFile: public SequentialFile {
 
   virtual Status Read(size_t n, Slice* result, char* scratch) {
     Status s;
-    size_t r = fread_unlocked(scratch, 1, n, file_);
+    size_t r = fread(scratch, 1, n, file_);
     *result = Slice(scratch, r);
     if (r < n) {
       if (feof(file_)) {
@@ -223,7 +223,11 @@ class PosixMmapFile : public WritableFile {
     if (pending_sync_) {
       // Some unmapped data was not synced
       pending_sync_ = false;
+#ifdef __APPLE__
+      if (fsync(fd_) < 0) {
+#else
       if (fdatasync(fd_) < 0) {
+#endif
         s = Status::IOError(filename_, strerror(errno));
       }
     }
@@ -422,7 +426,7 @@ class PosixEnv : public Env {
   virtual void Logv(WritableFile* info_log, const char* format, va_list ap) {
     pthread_t tid = pthread_self();
     uint64_t thread_id = 0;
-    memcpy(&thread_id, &tid, min(sizeof(thread_id), sizeof(tid)));
+    memcpy(&thread_id, &tid, fmin(sizeof(thread_id), sizeof(tid)));
 
     // We try twice: the first time with a fixed-size stack allocated buffer,
     // and the second time with a much larger dynamically allocated buffer.

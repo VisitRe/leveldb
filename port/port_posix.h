@@ -7,18 +7,26 @@
 #ifndef STORAGE_LEVELDB_PORT_PORT_POSIX_H_
 #define STORAGE_LEVELDB_PORT_PORT_POSIX_H_
 
-#include <endian.h>
+#if defined(__linux__)
+  #include <endian.h>
+#elif defined(__APPLE__)
+  #include <machine/endian.h>
+#endif
 #include <pthread.h>
 #include <stdint.h>
 #include <string>
-#include <cstdatomic>
+#include <atomic>
 #include <cstring>
 #include "port/sha1_portable.h"
 
 namespace leveldb {
 namespace port {
 
+#if defined(__APPLE__)
+static const bool kLittleEndian = (__DARWIN_BYTE_ORDER == __DARWIN_LITTLE_ENDIAN);
+#else
 static const bool kLittleEndian = (__BYTE_ORDER == __LITTLE_ENDIAN);
+#endif
 
 class CondVar;
 
