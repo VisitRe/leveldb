@@ -46,15 +46,7 @@
 namespace leveldb {
 namespace port {
 
-<<<<<<< HEAD
-#if defined(__APPLE__)
-static const bool kLittleEndian = (__DARWIN_BYTE_ORDER == __DARWIN_LITTLE_ENDIAN);
-#else
-static const bool kLittleEndian = (__BYTE_ORDER == __LITTLE_ENDIAN);
-#endif
-=======
 static const bool kLittleEndian = IS_LITTLE_ENDIAN;
->>>>>>> f57e233 (Platform detection during build, plus compatibility patches for machines without <cstdatomic>.)
 
 class CondVar;
 
